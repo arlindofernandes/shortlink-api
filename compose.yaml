@@ -1,0 +1,38 @@
+
+services:
+  postgres:
+    image: postgres:16
+    container_name: shortlink-postgres
+    environment:
+      POSTGRES_DB: shortlink
+      POSTGRES_USER: shortlink
+      POSTGRES_PASSWORD: devpassword
+    ports:
+      - "5432:5432"
+    volumes:
+      - shortlink_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U shortlink -d shortlink"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: shortlink-api
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/shortlink
+      DB_USERNAME: shortlink
+      DB_PASSWORD: devpassword
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  shortlink_data:
