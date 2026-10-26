@@ -23,10 +23,8 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: shortlink-api
-    environment:
-      DB_URL: jdbc:postgresql://postgres:5432/shortlink
-      DB_USERNAME: shortlink
-      DB_PASSWORD: devpassword
+    env_file:
+      - .env
     ports:
       - "8080:8080"
     depends_on:
