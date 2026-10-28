@@ -1,6 +1,8 @@
 # Shortlink API
 
-REST API para encurtamento de URLs, desenvolvida com Java e Spring Boot. O projeto permite criar links curtos, armazená-los no PostgreSQL e redirecionar usuários para as URLs originais.
+REST API para encurtamento de URLs, desenvolvida com Java 21 e Spring Boot. Permite criar links curtos, armazená-los no PostgreSQL e redirecionar usuários para as URLs originais.
+
+![CI](https://github.com/arlindofernandes/shortlink-api/actions/workflows/ci.yml/badge.svg)
 
 ## Tecnologias
 
@@ -9,29 +11,34 @@ REST API para encurtamento de URLs, desenvolvida com Java e Spring Boot. O proje
 - Spring Data JPA
 - Spring Web
 - Bean Validation
-- PostgreSQL
+- PostgreSQL 16
 - Flyway
 - Maven
 - Docker e Docker Compose
+- GitHub Actions
+- GitHub Container Registry (GHCR)
 
 ## Funcionalidades
 
 - Criação de links curtos.
-- Geração aleatória de códigos de 7 caracteres.
+- Geração aleatória de códigos alfanuméricos de 7 caracteres.
 - Persistência dos links no PostgreSQL.
 - Validação das URLs recebidas.
-- Redirecionamento HTTP 302.
+- Redirecionamento HTTP 302 para a URL original.
 - Resposta HTTP 404 para códigos inexistentes.
 - Data de criação gerada pelo banco de dados.
-- Migrações de banco de dados com Flyway.
-- Execução da aplicação com Docker Compose.
+- Migrações do esquema com Flyway.
+- Testes unitários e de integração.
+- CI no GitHub Actions para executar os testes.
+- Publicação automática da imagem Docker no GHCR após os testes passarem em um push para a branch `main`.
 
-## Como executar
+## Como executar localmente
 
 ### Pré-requisitos
 
-- Docker e Docker Compose
 - Git
+- Docker Engine e Docker Compose
+- Java 21, caso deseje executar os testes fora do Docker
 
 ### 1. Clone o repositório
 
@@ -42,7 +49,7 @@ cd shortlink-api
 
 ### 2. Configure as variáveis de ambiente
 
-Crie um arquivo `.env` na raiz do projeto, conforme a configuração do Docker Compose:
+Crie um arquivo `.env` na raiz do projeto:
 
 ```dotenv
 DB_URL=jdbc:postgresql://postgres:5432/shortlink
@@ -50,7 +57,7 @@ DB_USERNAME=shortlink
 DB_PASSWORD=devpassword
 ```
 
-Os valores acima são destinados ao ambiente local de desenvolvimento. Não utilize credenciais de desenvolvimento em produção e não versione o arquivo `.env`.
+Esses valores destinam-se somente ao desenvolvimento local. Não use essas credenciais em produção e não versione o arquivo `.env`.
 
 ### 3. Inicie a aplicação
 
@@ -58,25 +65,43 @@ Os valores acima são destinados ao ambiente local de desenvolvimento. Não util
 docker compose up -d --build
 ```
 
-Consulte os logs:
+Consulte o estado dos serviços:
+
+```bash
+docker compose ps
+```
+
+Consulte os logs da API:
 
 ```bash
 docker compose logs -f app
 ```
 
-Para verificar a saúde da aplicação:
+Verifique a saúde da aplicação:
 
 ```bash
 curl -i http://localhost:8080/actuator/health
 ```
 
+Uma resposta saudável retorna HTTP `200` e status `UP`.
+
 ### 4. Execute os testes
 
-Com Java 21 instalado:
+Com Java 21 instalado e o PostgreSQL de teste configurado conforme os arquivos de teste:
 
 ```bash
-./mvnw test
+./mvnw clean test
 ```
+
+Os testes de integração usam o perfil `test` e a configuração em `src/test/resources/application-test.yaml`.
+
+### 5. Encerre os serviços
+
+```bash
+docker compose down
+```
+
+Para remover também o volume de dados local do PostgreSQL, use `docker compose down -v`. **Isso apaga os dados persistidos nesse volume.**
 
 ## Endpoints
 
@@ -92,7 +117,7 @@ Requisição:
 }
 ```
 
-Resposta esperada — `201 Created`:
+Resposta ilustrativa — `201 Created`:
 
 ```json
 {
@@ -104,7 +129,7 @@ Resposta esperada — `201 Created`:
 }
 ```
 
-Os valores são ilustrativos; o identificador, o código e a data serão gerados durante a execução.
+O identificador, o código curto e a data são valores ilustrativos; serão definidos durante a execução.
 
 Exemplo com cURL:
 
@@ -124,7 +149,7 @@ Exemplo:
 curl -i http://localhost:8080/aWHPiM4
 ```
 
-Para um código existente, a API retorna `302 Found`, com o cabeçalho `Location` apontando para a URL original.
+Para um código existente, a API retorna `302 Found` e o cabeçalho `Location` com a URL original.
 
 ### Códigos de resposta
 
@@ -137,21 +162,28 @@ Para um código existente, a API retorna `302 Found`, com o cabeçalho `Location
 
 ## Banco de dados
 
-O PostgreSQL armazena os links na tabela `short_links`.
-
-As migrações são gerenciadas pelo Flyway e ficam em:
+O PostgreSQL armazena os links na tabela `short_links`. As migrações de esquema são gerenciadas pelo Flyway e ficam em:
 
 `src/main/resources/db/migration/`
 
+## CI e publicação da imagem Docker
+
+O workflow em `.github/workflows/ci.yml` é acionado em pushes e pull requests direcionados à branch `main`.
+
+- O job `test` executa os testes automatizados com Java 21 e um serviço PostgreSQL.
+- O job `publish` depende do sucesso dos testes e publica a imagem no GitHub Container Registry (GHCR) somente em pushes para `main`.
+- A imagem é publicada com as tags `latest` e o SHA do commit.
+
+A publicação da imagem não configura, por si só, o deploy da aplicação em um servidor de produção.
+
 ## Próximas melhorias
 
-- Testes automatizados dos endpoints.
-- Padronização das respostas de erro.
 - Configuração da URL-base por ambiente.
 - Documentação OpenAPI/Swagger.
 - Métricas de utilização dos links.
 - Estratégias adicionais para colisões de códigos curtos.
+- Implantação automatizada em um ambiente de hospedagem.
 
 ## Objetivo
 
-Projeto de portfólio para praticar desenvolvimento backend com Java, Spring Boot, APIs REST, persistência relacional, validação, migrações de banco de dados e conteinerização.
+Projeto de portfólio para praticar desenvolvimento backend com Java, Spring Boot, APIs REST, persistência relacional, validação, migrações de banco de dados, testes automatizados, Docker e integração contínua.
