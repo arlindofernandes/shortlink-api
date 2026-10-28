@@ -32,6 +32,44 @@ REST API para encurtamento de URLs, desenvolvida com Java 21 e Spring Boot. Perm
 - CI no GitHub Actions para executar os testes.
 - Publicação automática da imagem Docker no GHCR após os testes passarem em um push para a branch `main`.
 
+## Arquitetura
+
+A aplicação organiza o processamento HTTP, as regras de negócio e a persistência em componentes separados. O diagrama abaixo mostra o caminho principal das requisições e como a aplicação se conecta ao banco de dados no ambiente local.
+
+```mermaid
+flowchart TD
+    Client["Cliente HTTP<br/>Navegador ou cURL"]
+
+    subgraph Compose["Docker Compose"]
+        subgraph App["Aplicação Spring Boot · porta 8080"]
+            Create["ShortLinkController<br/>POST /api/v1/short-links"]
+            Redirect["RedirectController<br/>GET /{shortCode}"]
+            Service["ShortLinkService<br/>Gera e consulta códigos"]
+            Repository["ShortLinkRepository<br/>Persistência"]
+            Create --> Service
+            Redirect --> Service
+            Service --> Repository
+        end
+
+        DB[("PostgreSQL · porta 5432<br/>Tabela short_links")]
+        Flyway["Flyway<br/>Migrações do esquema"]
+        Repository <--> DB
+        Flyway -. "cria e valida o esquema" .-> DB
+    end
+
+    Client --> Create
+    Client --> Redirect
+```
+
+### Responsabilidade dos componentes
+
+- **Controllers:** recebem as requisições HTTP. O `ShortLinkController` cria links; o `RedirectController` procura o código curto e responde com `302 Found` e o cabeçalho `Location`.
+- **ShortLinkService:** concentra as regras para gerar códigos alfanuméricos de 7 caracteres, tentar novamente em caso de colisão e localizar links existentes.
+- **ShortLinkRepository:** abstrai as operações de persistência e consulta dos links.
+- **PostgreSQL:** armazena os links na tabela `short_links`.
+- **Flyway:** aplica e valida as migrações do esquema do banco de dados.
+- **Docker Compose:** inicia os containers da API e do PostgreSQL para desenvolvimento local, aguardando o banco ficar saudável antes de iniciar a aplicação.
+
 ## Como executar localmente
 
 ### Pré-requisitos
