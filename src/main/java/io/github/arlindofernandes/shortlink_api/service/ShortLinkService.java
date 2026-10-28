@@ -17,10 +17,11 @@ public class ShortLinkService {
     private static final int MAX_ATTEMPTS = 5;
 
     private final ShortLinkRepository shortLinkRepository;
-    private final SecureRandom random = new SecureRandom();
+    private final SecureRandom random;
 
-    public ShortLinkService(ShortLinkRepository shortLinkRepository) {
+    public ShortLinkService(ShortLinkRepository shortLinkRepository, SecureRandom random) {
         this.shortLinkRepository = shortLinkRepository;
+        this.random = random;
     }
 
     @Transactional
