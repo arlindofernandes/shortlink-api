@@ -1,7 +1,7 @@
 spring:
   application:
     name: shortlink-api
-  name: shortlink-api
+
   datasource:
     url: ${DB_URL:jdbc:postgresql://localhost:5432/shortlink}
     username: ${DB_USERNAME:shortlink}
@@ -17,6 +17,9 @@ spring:
 
 server:
   port: 8080
+
+app:
+  base-url: ${APP_BASE_URL:http://localhost:8080}
 
 management:
   endpoints:

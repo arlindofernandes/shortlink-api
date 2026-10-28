@@ -1,5 +1,6 @@
 package io.github.arlindofernandes.shortlink_api.controller;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -13,32 +14,34 @@ import io.github.arlindofernandes.shortlink_api.entity.ShortLink;
 import io.github.arlindofernandes.shortlink_api.service.ShortLinkService;
 import jakarta.validation.Valid;
 
-@RestController 
+
+@RestController
 @RequestMapping("/api/v1/short-links")
 public class ShortLinkController {
 
     private final ShortLinkService shortLinkService;
+    private final String baseUrl;
 
-    public ShortLinkController(ShortLinkService shortLinkService) {
+    public ShortLinkController(ShortLinkService shortLinkService, @Value("${app.base-url}") String baseUrl) {
         this.shortLinkService = shortLinkService;
+        this.baseUrl = baseUrl;
     }
 
-     @PostMapping
+    @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public CreateShortLinkResponse create(
-            @Valid @RequestBody CreateShortLinkRequest request
-    ) {
+            @Valid @RequestBody CreateShortLinkRequest request) {
         ShortLink shortLink = shortLinkService.create(request.originalUrl());
 
-        String shortUrl = "http://localhost:8080/" + shortLink.getShortCode();
+        String shortUrl = baseUrl.replaceAll("/+$", "")
+                + "/" + shortLink.getShortCode();
 
         return new CreateShortLinkResponse(
                 shortLink.getId(),
                 shortLink.getOriginalUrl(),
                 shortLink.getShortCode(),
                 shortUrl,
-                shortLink.getCreatedAt()
-        );
+                shortLink.getCreatedAt());
     }
 
 }
