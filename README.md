@@ -198,6 +198,17 @@ Para um código existente, a API retorna `302 Found` e o cabeçalho `Location` c
 | `400 Bad Request` | Requisição inválida |
 | `404 Not Found` | Código curto inexistente |
 
+## Documentação OpenAPI / Swagger
+
+A API disponibiliza uma documentação interativa gerada com OpenAPI 3 e Springdoc.
+
+Com a aplicação em execução localmente, acesse:
+
+- **Swagger UI:** http://localhost:8080/swagger-ui/index.html
+- **Especificação OpenAPI (JSON):** http://localhost:8080/v3/api-docs
+
+Pela interface Swagger UI, é possível consultar os endpoints, visualizar os modelos de requisição e resposta e executar chamadas HTTP para testar a API.
+
 ## Banco de dados
 
 O PostgreSQL armazena os links na tabela `short_links`. As migrações de esquema são gerenciadas pelo Flyway e ficam em:

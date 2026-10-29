@@ -12,10 +12,16 @@ import io.github.arlindofernandes.shortlink_api.dto.CreateShortLinkRequest;
 import io.github.arlindofernandes.shortlink_api.dto.CreateShortLinkResponse;
 import io.github.arlindofernandes.shortlink_api.entity.ShortLink;
 import io.github.arlindofernandes.shortlink_api.service.ShortLinkService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 
-
 @RestController
+@Tag(name = "Links curtos", description = "Operações para criar links curtos")
 @RequestMapping("/api/v1/short-links")
 public class ShortLinkController {
 
@@ -27,6 +33,12 @@ public class ShortLinkController {
         this.baseUrl = baseUrl;
     }
 
+    @Operation(summary = "Criar link curto", description = "Recebe uma URL original, gera um código curto "
+            + "e retorna os dados do link criado.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "201", description = "Link curto criado com sucesso.", content = @Content(mediaType = "application/json", schema = @Schema(implementation = CreateShortLinkResponse.class))),
+            @ApiResponse(responseCode = "400", description = "Requisição inválida ou URL original inválida.")
+    })
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public CreateShortLinkResponse create(
